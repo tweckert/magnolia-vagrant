@@ -1,0 +1,4 @@
+-- WARNING: DROP ROLE cannot be undone. Use it with care!
+-- Uncomment the following two lines to drop the Magnolia database roles
+--DROP ROLE IF EXISTS "magnoliaAuthor";
+--DROP ROLE IF EXISTS "magnoliaPublic";

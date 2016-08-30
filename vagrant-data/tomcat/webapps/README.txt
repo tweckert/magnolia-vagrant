@@ -1,0 +1,1 @@
+Download and save in this directory a Magnolia webapp bundle from https://documentation.magnolia-cms.com/display/DOCS/Bundles+and+webapps

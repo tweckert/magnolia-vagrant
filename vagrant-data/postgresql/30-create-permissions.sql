@@ -1,0 +1,5 @@
+GRANT ALL PRIVILEGES ON DATABASE "magnoliaAuthor" to "magnoliaAuthor";	
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "magnoliaAuthor";
+
+GRANT ALL PRIVILEGES ON DATABASE "magnoliaPublic" to "magnoliaPublic";	
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO "magnoliaPublic";	

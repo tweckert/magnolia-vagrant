@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	NB: each user needs to create a properties file named '${USERNAME}.properties' 
+	that contains the settings of his local development environment. 
+	Please refer to 'thomasw.properties' in this project as an example.
+	
+	NB: the Ant SSH tasks depend on external libraries that are not included in the Ant distribution.
+	You need to download the jsh Java library from 'http://www.jcraft.com/jsch/' and include
+	it in your Ant runtime. If you are running Ant within Eclipse, add 'jsch-0.1.52.jar'
+	to the Ant classpath (Preferences > Ant > Runtime > Classpath > Add External Jars...)	
+	
+	Author: Thomas Weckert (thomas.weckert@nexum.de)
+-->
+<project name="Vagrant Ant Tasks">
+
+	<!--
+		Note that these Ant tasks should be imported from another Ant script,
+		rather than using this script directly.  
+	-->
+
+	<target name="tomcat.update.jar" description="Updates the remote Tomcat (Vagrant) with a new JAR">
+		<antcall target="vagrant.tomcat.stop" />		
+		<antcall target="vagrant.tomcat.copy.jar">
+			<param name="param.webapp.name" value="${webapp.name.magnoliaAuthor}" />
+		</antcall>
+		<antcall target="vagrant.tomcat.copy.jar">
+			<param name="param.webapp.name" value="${webapp.name.magnoliaPublic}" />
+		</antcall>
+		<antcall target="vagrant.tomcat.restart" />		
+	</target>
+	
+	<target name="tomcat.update.war" description="Updates the remote Tomcat (Vagrant) with a new WAR">
+		<antcall target="vagrant.tomcat.stop" />	
+		<antcall target="vagrant.tomcat.copy.war">
+			<param name="param.war.src.name" value="${webapp.name.magnoliaAuthor}" />
+			<param name="param.war.name" value="${webapp.name.magnoliaAuthor}" />
+		</antcall>	
+		<antcall target="vagrant.tomcat.copy.war">
+			<param name="param.war.src.name" value="${webapp.name.magnoliaAuthor}" />
+			<param name="param.war.name" value="${webapp.name.magnoliaPublic}" />
+		</antcall>		
+		<antcall target="vagrant.tomcat.restart" />		
+	</target>
+	
+	<target name="tomcat.copy.jsp" description="Removes existing JSP templates, copies the new JSP templates and sets the owner and file permissions properly">
+		<echo message="Removing the existing JSP template directory (task may fail if the JAR doesn't exist)" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo rm -rf ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates/${param.jsp.templateDir}"
+	        trust="true"
+			failonerror="false"
+	    />		
+	    
+	    <echo message="Creating a new JSP template directory" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo mkdir -p ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates/${param.jsp.templateDir}"
+	        trust="true"
+	    />
+	    		
+		<echo message="Copying the new JSP templates into Tomcat" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo cp -r /vagrant-data/${param.jsp.srcDir} ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates"
+	        trust="true"
+	    />
+	    
+		<echo message="Changing the owner of the new JSP templates" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo chown -R tomcat7:tomcat7 ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates"
+	        trust="true"
+	    />
+	    
+		<echo message="Changing the file permissions of the JSP template directories" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo find ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates -type d -exec chmod 755 {} +"
+	        trust="true"
+	    />	    
+
+		<echo message="Changing the file permissions of the JSP templates" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo find ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/templates -type f -exec chmod 644 {} +"
+	        trust="true"
+	    />	    	    	    
+	</target>
+	
+	<target name="tomcat.copy.war" description="Removes the existing WAR, copies the new WAR and sets the owner and file permissions properly">        	
+		<echo message="Removing the existing WAR (task may fail if the WAR doesn't exist)" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo rm ${vagrant.tomcat.home}/webapps/${param.war.name}.war"
+	        trust="true"
+			failonerror="false"
+	    />		
+		
+		<echo message="Removing the existing webapp directory (task may fail if the webapp directory doesn't exist)" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo rm -rf ${vagrant.tomcat.home}/webapps/${param.war.name}"
+	        trust="true"
+			failonerror="false"
+	    />		
+		
+		<echo message="Copying the new WAR into Tomcat" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo cp /vagrant-data/webapp/${param.war.src.name}.war ${vagrant.tomcat.home}/webapps/${param.war.name}.war"
+	        trust="true"
+	    />			
+	</target>
+
+	<target name="tomcat.copy.jar" description="Removes the existing JAR, copies the new JAR and sets the owner and file permissions properly">
+		<echo message="Removing the existing JAR (task may fail if the JAR doesn't exist)" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo rm /home/vagrant/${artifact.jar}"
+	        trust="true"
+			failonerror="false"
+	    />
+		
+		<echo message="Copying the new JAR to Vagrant's home" />
+		<scp todir="${vagrant.ssh.username}:${vagrant.ssh.password}@${vagrant.host}:/home/vagrant" port="${vagrant.port}" trust="true">
+			<fileset dir="${param.project.home}/target" includes="**/${artifact.jar}" />
+		</scp>
+		
+		<echo message="Changing the file permissions of the existing JAR (task may fail if the JAR doesn't exist)" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo chmod 666 ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/lib/${artifact.jar}"
+	        trust="true"
+			failonerror="false"
+	    />		
+		
+		<echo message="Copying the new JAR into Tomcat" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo yes | cp /home/vagrant/${artifact.jar} ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/lib"
+	        trust="true"
+	    />		
+
+		<echo message="Changing the owner of the new JAR" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo chown tomcat7:tomcat7 ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/lib/${artifact.jar}"
+	        trust="true"
+	    />
+
+		<echo message="Changing the file permissions of the new JAR" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo chmod 644 ${vagrant.tomcat.home}/webapps/${param.webapp.name}/WEB-INF/lib/${artifact.jar}"
+	        trust="true"
+	    />
+	</target>
+
+	<target name="tomcat.stop" description="Stops the remote Tomcat (Vagrant)">
+		<echo message="Stopping Tomcat" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo -E /etc/init.d/tomcat7 stop"
+	        trust="true"
+	    />
+	</target>
+
+	<target name="tomcat.restart" description="Restarts the remote Tomcat (Vagrant)">
+		<echo message="Restarting Tomcat" />
+		<sshexec 
+	    	host="${vagrant.host}"
+    		port="${vagrant.port}"
+	        username="${vagrant.ssh.username}"
+	        password="${vagrant.ssh.password}"
+	        command="sudo -E /etc/init.d/tomcat7 restart" 
+	        trust="true"
+	    />
+	</target>
+
+</project>

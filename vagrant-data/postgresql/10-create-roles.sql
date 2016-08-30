@@ -1,0 +1,2 @@
+CREATE ROLE "magnoliaAuthor" LOGIN PASSWORD 'oeSa8cpnP2vPHTe03SGF';
+CREATE ROLE "magnoliaPublic" LOGIN PASSWORD '9AvnfXe16zUaswZeyQ8j';

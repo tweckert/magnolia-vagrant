@@ -1,0 +1,4 @@
+-- WARNING: DROP DATABASE cannot be undone. Use it with care!
+-- Uncomment the following two lines to drop the Magnolia databases
+--DROP DATABASE "magnoliaAuthor";
+--DROP DATABASE "magnoliaPublic";
