@@ -3,7 +3,7 @@
 A Vagrant file to create a VM image that runs a Magnolia webapp bundle.
 
 ## Prerequisites
-- download and install Oracle VirtualBox from `https://www.virtualbox.org/`
+- download and install Oracle VirtualBox 4.x from `https://www.virtualbox.org/`
 
 ## Get or build a Magnolia webapp bundle
 - download a pre-configured [Magnolia webapp bundle](https://documentation.magnolia-cms.com/display/DOCS/Bundles+and+webapps)
